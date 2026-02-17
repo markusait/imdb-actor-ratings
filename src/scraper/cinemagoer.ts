@@ -3,9 +3,12 @@ import { ActorSearchResult } from './search';
 import { ActorFilmography, Movie } from './filmography';
 
 /**
- * Path to working Python 3.11 with cinemagoer 2025.12.31
+ * Path to Python executable
+ * Uses 'python3' in production (Docker), falls back to local venv in development
  */
-const PYTHON_PATH = '/Users/markus/Documents/New project/.venv311/bin/python';
+const PYTHON_PATH = process.env.NODE_ENV === 'production'
+  ? 'python3'
+  : '/Users/markus/Documents/New project/.venv311/bin/python';
 
 interface CinemagoerResult {
   imdbId: string;
