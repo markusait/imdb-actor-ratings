@@ -50,5 +50,8 @@ WORKDIR /app/.next/standalone
 # Expose port
 EXPOSE 3000
 
+# Bind to all network interfaces (required for Docker/Render)
+ENV HOSTNAME=0.0.0.0
+
 # Start the standalone server
 CMD ["node", "server.js"]
