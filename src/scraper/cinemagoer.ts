@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import path from 'path';
 import { ActorSearchResult } from './search';
 import { ActorFilmography, Movie } from './filmography';
 
@@ -136,7 +137,9 @@ function callFastSearchScript(actorName: string): Promise<{
   error?: string;
 }> {
   return new Promise((resolve, reject) => {
-    const python = spawn(PYTHON_PATH, ['scripts/search_actor_only.py', actorName]);
+    // Use absolute path for Docker compatibility
+    const scriptPath = path.join(process.cwd(), 'scripts', 'search_actor_only.py');
+    const python = spawn(PYTHON_PATH, [scriptPath, actorName]);
 
     let stdout = '';
     let stderr = '';
@@ -179,7 +182,9 @@ function callFastSearchScript(actorName: string): Promise<{
  */
 function callCinemagoerScript(actorName: string): Promise<CinemagoerResult> {
   return new Promise((resolve, reject) => {
-    const python = spawn(PYTHON_PATH, ['scripts/search_actor_full.py', actorName]);
+    // Use absolute path for Docker compatibility
+    const scriptPath = path.join(process.cwd(), 'scripts', 'search_actor_full.py');
+    const python = spawn(PYTHON_PATH, [scriptPath, actorName]);
 
     let stdout = '';
     let stderr = '';
