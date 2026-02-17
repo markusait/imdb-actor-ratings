@@ -19,6 +19,12 @@ export const actorRouter = router({
         // Use cinemagoer FAST search (returns up to 10 results, ~1 second)
         const results = await searchActorWithCinemagoer(input.query);
 
+        // If cinemagoer returns empty, throw error to trigger Playwright fallback
+        // This happens when IMDb blocks Render's datacenter IPs
+        if (results.length === 0) {
+          throw new Error('Cinemagoer returned no results (likely blocked by IMDb)');
+        }
+
         // Store actor name for each result (for later filmography fetch)
         results.forEach(result => {
           actorNameCache.set(result.id, result.name);
