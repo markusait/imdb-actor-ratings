@@ -3,6 +3,10 @@
     "chrome-devtools": {
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "render": {
+      "command": "npx",
+      "args": ["-y", "@render/mcp-server-render@latest"]
     }
   }
 }
