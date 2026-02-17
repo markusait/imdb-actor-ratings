@@ -139,20 +139,36 @@ function callFastSearchScript(actorName: string): Promise<{
   return new Promise((resolve, reject) => {
     // Use absolute path for Docker compatibility
     const scriptPath = path.join(process.cwd(), 'scripts', 'search_actor_only.py');
+
+    // Detailed logging for debugging production issues
+    console.log(`[Cinemagoer] Spawning Python script:`);
+    console.log(`  - Python path: ${PYTHON_PATH}`);
+    console.log(`  - Script path: ${scriptPath}`);
+    console.log(`  - Actor query: "${actorName}"`);
+    console.log(`  - cwd: ${process.cwd()}`);
+
     const python = spawn(PYTHON_PATH, [scriptPath, actorName]);
 
     let stdout = '';
     let stderr = '';
 
     python.stdout.on('data', (data) => {
-      stdout += data.toString();
+      const output = data.toString();
+      console.log(`[Cinemagoer] Python stdout: ${output}`);
+      stdout += output;
     });
 
     python.stderr.on('data', (data) => {
-      stderr += data.toString();
+      const output = data.toString();
+      console.log(`[Cinemagoer] Python stderr: ${output}`);
+      stderr += output;
     });
 
     python.on('close', (code) => {
+      console.log(`[Cinemagoer] Python script exited with code ${code}`);
+      console.log(`[Cinemagoer] Full stdout: ${stdout}`);
+      console.log(`[Cinemagoer] Full stderr: ${stderr}`);
+
       if (code !== 0) {
         try {
           const errorData = JSON.parse(stderr);
@@ -172,6 +188,7 @@ function callFastSearchScript(actorName: string): Promise<{
     });
 
     python.on('error', (error) => {
+      console.error(`[Cinemagoer] Spawn error:`, error);
       reject(error);
     });
   });

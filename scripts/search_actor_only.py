@@ -26,11 +26,21 @@ def main() -> int:
         return 1
 
     query = sys.argv[1]
+
+    # Debug logging
+    print(json.dumps({
+        "debug": "Starting search",
+        "query": query,
+        "argv": sys.argv,
+    }), file=sys.stderr)
+
     ia = Cinemagoer()
 
     try:
         # Search for actors - return up to 10 results
+        print(json.dumps({"debug": "Calling ia.search_person()"}), file=sys.stderr)
         people = ia.search_person(query)
+        print(json.dumps({"debug": f"search_person returned {len(people) if people else 0} results"}), file=sys.stderr)
 
         if not people or len(people) == 0:
             print(json.dumps({"error": f"No person found for: {query}"}), file=sys.stderr)
