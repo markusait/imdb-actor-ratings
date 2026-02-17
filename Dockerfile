@@ -26,7 +26,7 @@ RUN bun install --frozen-lockfile
 RUN bunx playwright install chromium
 
 # Install Python dependencies (cinemagoer/IMDbPY)
-RUN pip3 install --no-cache-dir cinemagoer
+RUN pip3 install --break-system-packages --no-cache-dir cinemagoer
 
 # Copy source code
 COPY . .
