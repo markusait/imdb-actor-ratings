@@ -27,8 +27,15 @@ RUN mkdir -p data
 # Build Next.js
 RUN bun run build
 
+# Copy static files for standalone build
+RUN cp -r .next/static .next/standalone/.next/static
+RUN cp -r public .next/standalone/public
+
+# Set working directory to standalone
+WORKDIR /app/.next/standalone
+
 # Expose port
 EXPOSE 3000
 
-# Start the app
-CMD ["bun", "start"]
+# Start the standalone server
+CMD ["node", "server.js"]
