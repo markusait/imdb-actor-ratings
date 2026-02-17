@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.claude
+plans/
+data/cache.json
+*.md
+.gitignore
+.DS_Store
+*.log
+.env*
+.vercel
+tsconfig.tsbuildinfo
