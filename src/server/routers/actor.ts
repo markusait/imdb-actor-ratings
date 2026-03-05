@@ -3,21 +3,44 @@ import { router, publicProcedure } from '../trpc';
 import { searchActors } from '@/scraper/search';
 import { scrapeFilmography } from '@/scraper/filmography';
 import { searchActorWithCinemagoer, getFilmographyWithCinemagoer } from '@/scraper/cinemagoer';
+import { searchActorsHttp } from '@/scraper/search-http';
+import { getTomHanksFilmographyFromTmdbSupabase, searchTomHanksOnly } from '@/server/providers/tom-hanks-supabase';
 import { getCached, setCache } from '../cache';
 
 // In-memory map to store actor name by IMDb ID (needed for cinemagoer filmography fetch)
 const actorNameCache = new Map<string, string>();
+const SUPABASE_TMDB_TOM_HANKS_MODE = process.env.BACKEND_MODE === 'tmdb-supabase-tomhanks';
+const TOM_HANKS_IMDB_ID = 'nm0000158';
 
 // Define output types clearly so frontend-agent can use them
 export const actorRouter = router({
   search: publicProcedure
-    .input(z.object({ query: z.string().min(1).max(100) }))
+    .input(z.object({ query: z.string().min(2).max(100) }))
     .query(async ({ input }) => {
+      const query = input.query.trim();
+
+      if (query.length < 2) {
+        return [];
+      }
+
+      if (SUPABASE_TMDB_TOM_HANKS_MODE) {
+        return searchTomHanksOnly(query);
+      }
+
       try {
-        console.log(`[API] Fast search for: ${input.query}`);
+        console.log(`[API] Fast search for: ${query}`);
+
+        const httpResults = await searchActorsHttp(query);
+        if (httpResults.length > 0) {
+          httpResults.forEach(result => {
+            actorNameCache.set(result.id, result.name);
+          });
+          console.log(`[API] HTTP search returned ${httpResults.length} results`);
+          return httpResults;
+        }
 
         // Use cinemagoer FAST search (returns up to 10 results, ~1 second)
-        const results = await searchActorWithCinemagoer(input.query);
+        const results = await searchActorWithCinemagoer(query);
 
         // If cinemagoer returns empty, throw error to trigger Playwright fallback
         // This happens when IMDb blocks Render's datacenter IPs
@@ -37,7 +60,7 @@ export const actorRouter = router({
 
         // Fallback to Playwright if cinemagoer fails
         try {
-          const results = await searchActors(input.query);
+          const results = await searchActors(query);
           return results;
         } catch (fallbackError) {
           console.error('[API] Playwright fallback also failed:', fallbackError);
@@ -49,6 +72,22 @@ export const actorRouter = router({
   ratings: publicProcedure
     .input(z.object({ imdbId: z.string().regex(/^nm\d+$/) }))
     .query(async ({ input }) => {
+      if (SUPABASE_TMDB_TOM_HANKS_MODE) {
+        if (input.imdbId !== TOM_HANKS_IMDB_ID) {
+          throw new Error('Demo backend currently supports only Tom Hanks (nm0000158).');
+        }
+
+        const cached = getCached(input.imdbId);
+        if (cached) {
+          console.log(`[API] Cache hit for ${input.imdbId} (TMDB+Supabase mode)`);
+          return cached;
+        }
+
+        const filmography = await getTomHanksFilmographyFromTmdbSupabase();
+        setCache(input.imdbId, filmography);
+        return filmography;
+      }
+
       try {
         // Check cache first
         const cached = getCached(input.imdbId);

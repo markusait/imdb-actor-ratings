@@ -8,6 +8,14 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: "3000"
+      - key: BACKEND_MODE
+        value: tmdb-supabase-tomhanks
+      - key: SUPABASE_URL
+        value: https://jskzxrrntdfaumzkbvly.supabase.co
+      - key: SUPABASE_RATINGS_TABLE
+        value: ratings
+      - key: TMDB_API_KEY
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
     healthCheckPath: /
